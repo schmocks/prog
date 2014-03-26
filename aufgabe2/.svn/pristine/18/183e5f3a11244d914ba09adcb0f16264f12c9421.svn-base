@@ -1,0 +1,195 @@
+package tplan.app;
+
+import java.awt.Color;
+import java.util.ArrayList;
+
+/**
+ * Klasse für eine Aufgaben-Kategorie, der weitere Unterkategorien zugeordnet
+ * werden können.
+ *
+ *@author Stephan Degener
+ */
+
+public class Category {
+
+	public String name;
+	public Color farbe;
+	public long endTime = 0;
+	public long startTime = Long.MAX_VALUE;
+	ArrayList<Category> listsc= new ArrayList<Category>(); 	// Kategorieliste
+	ArrayList<Event> listev= new ArrayList<Event>();		// Eventliste
+	
+	
+	/**
+	 * toString Methode
+	 * 
+	 * @return liefert den Inhalt dieser Kategorie als String
+	 * 
+	 */
+	
+	public String toString() {
+		String tree = "";
+		Category[] c = getSubCategories();
+		if(c.length!=0){
+			for(int i=0;i<getSubCategories().length;i++){
+				tree += "+- " + (c[i].getName() + "\n" + c[i].getCatEvents());
+			}
+		}
+		else{
+			tree += getCatEvents();
+		}
+		
+		return name + "\n" + tree;
+	}
+	
+	
+	
+/**
+ * Konstruktor Hauptkategorien
+ * @param name Name der Kategorie
+ * @param farbe Farbe der Kategorie
+ */
+	
+	Category (String name, Color farbe){
+		this.name=name;this.farbe=farbe;
+	}
+	
+	/**
+	 * 
+	 * Konstruktor Unterkategorie
+	 * @param name Name der Kategorie
+	 */
+		
+	
+	Category (String name){
+		this.name=name;
+	}
+	
+	
+	/**
+	 * @return Name der Kategorie
+	 */
+	
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return Farbe der Kategorie für graphische Darstellung
+	 */
+	public Color getColor() {
+		return farbe;
+	}
+
+	/**
+	 * Fügt dieser Kategorie eine neue Unter-Kategorie hinzu.
+	 * 
+	 * @return neu erzeugte Kategorie. null, wenn die Kategorie schon Aufgaben
+	 *         enthält und daher keine Kategorien mehr aufnehmen darf.
+	 * @param scname Name der Unterkategorie        
+	 *         
+	 */
+	
+	public Category addSubCategory(String scname){
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		if(m.length!=0){return null;}		// Abfrage ob Eventsvorhanden sind
+		Category a = new Category(scname);listsc.add(a);
+		return a;
+	}
+
+	/**
+	 * @return Array aller untergeordneten Kategorien (ggf. Array der Länge 0).
+	 */
+	public Category[] getSubCategories() {
+		Category[] sub = listsc.toArray(new Category[listsc.size()]);
+		return sub;
+	
+	}
+
+	/**
+	 * der Kategorie ein Event hinfügen
+	 * 
+	 * @param cat Name der Kategorie
+	 * @param ename Name des Events
+	 * @param estartTime Startzeit des Events
+	 * @param eendTime Ablaufzeit des Events
+	 * @return das erzeugte Event
+	 */
+	
+	public Event addEvent(Category cat, String ename, long estartTime, long eendTime){
+		Event s = new Event(cat, ename, estartTime, eendTime);listev.add(s);
+		return s;
+		
+	}
+	/**
+	 * @return Beginn der Lebenszeit dieser Kategorie (in Millisekunden seit
+	 *         1.1.1970). Der Startzeitpunkt dieser Kategorie ergibt sich aus
+	 *         dem frühesten Startzeitpunktes aller Aufgaben in dieser
+	 *         Kategorie. Gibt es keine Ereignisse, liefert die Methode 0.
+	 */
+	public long getStartTime() {
+		Task[] m = TimePlanner.listta.toArray(new Task[TimePlanner.listta.size()]);
+		Event[] n = listev.toArray(new Event[listev.size()]);
+		long start=Long.MAX_VALUE;
+		for(int i=0;i<m.length;i++){
+			if(m[i].getStartTime()<start&&
+			  ((m[i].getCategory()).getName()==getName())){
+				for(int j = 0 ;j<n.length;j++){
+					if(n[j].getName()==m[i].getName()){start=m[i].getStartTime();}
+		
+				}
+			}
+		}
+		return start;
+	}
+
+	/**
+	 * @return Ende der Lebenszeit dieser Kategorie (in Millisekunden seit
+	 *         1.1.1970). Der Endzeitpunkt dieser Kategorie ergibt sich aus dem
+	 *         spätesten Endzeitpunktes aller Aufgaben in dieser Kategorie. Gibt
+	 *         es keine Ereignisse, liefert die Methode 0.
+	 */
+	public long getEndTime() {
+		Task[] m = TimePlanner.listta.toArray(new Task[TimePlanner.listta.size()]);
+		Event[] n = listev.toArray(new Event[listev.size()]);
+		long end = 0;
+		for(int i=0;i<m.length;i++){
+			if(m[i].getEndTime()>end&&
+			((m[i].getCategory()).getName()==getName()))
+			for(int j = 0 ;j<n.length;j++){
+				if(n[j].getName()==m[i].getName()){end=m[i].getEndTime();}
+			}
+			
+		
+		}
+		return end;
+	}
+	
+	/**
+	 * Erfasst alle Events dieser Kategorie
+	 * @return String aller Events als Baum
+	 * 
+	 */
+	
+	public String getCatEvents(){
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		String ev = "";
+		for(int i=0;i<m.length;i++){
+				ev += "   +- "+m[i].getName() + " " 
+				+ DateTime.dateTime(m[i].getStartTime())+ " " 
+				+ DateTime.dateTime(m[i].getEndTime())+ "\n";}
+		return ev;
+		}
+	
+	/**
+	 * Erfassung der Lebenszeit dieser Kategorie
+	 * @param cat	Name dieser Kategorie
+	 * @param tname	Name des Tasks
+	 * @param tstart Startzeit des Tasks
+	 * @param tend Endzeit des Tasks
+	 * @return null
+	 */
+	
+	
+}
+

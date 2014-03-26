@@ -1,0 +1,272 @@
+package tplan.app;
+
+
+
+
+
+/**
+ * Task Klasse
+ * 
+ * 
+ * @author Stephan
+ *
+ */
+
+
+
+public class Task {
+	
+public String name;
+public Category cat;
+public long starttime;
+public long endtime;
+public long start;
+
+
+/**
+ * to String Methode
+ * @return Name und dauer des Task
+ * 
+ */
+
+public String toString(){
+	return this.name + " " + this.cat.getName();
+}
+
+/**
+ * 
+ * Konstruktor
+ * @param name Name des Tasks
+ * @param starttime Startzeit
+ * @param endtime Endzeoit
+ * @param cat Kategorie
+ * 
+ */
+
+
+Task(Category cat, String name, long starttime, long endtime){
+	this.cat=cat; this.name=name; this.starttime=starttime; this.endtime=endtime;
+}
+
+
+/**
+ * Konstruktor Tages Task
+ * 
+ * @param name Name des Tasks
+ * @param start Startzeit
+ *
+ * @param cat Kategorie
+ **
+ *
+ *
+ */
+
+Task(Category cat, String name, long start){
+	this.cat=cat; this.name=name; this.start=starttime;
+}
+
+/**
+ * 
+ * Konstruktor periodischer Task
+ * 
+ * @param name Name des Tasks
+ * @param start Startzeit
+ * @param end Endzeoit
+ * @param cat Kategorie
+ * @param duration dauer des Tasks
+ * @param delta Abstand zwischen den Events
+ * 
+ * 
+ */
+
+Task(Category cat, String name, long start,
+		long duration, long delta, long end){
+	
+}
+/**
+ * 
+ * getName
+ * 
+ * @return String mit Namen des Tasks
+ * 
+ * 
+ */
+
+
+public String getName() {
+	return name;
+}
+
+/**
+ * @return Kategorie, zu der dieses Ereignis (unmittelbar) gehört
+ */
+public Category getCategory() {
+	
+return this.cat;
+}
+
+/**
+ * @return Startzeitpunkt des Ereignisses (in Millisekunden seit 1.1.1970)
+ */
+public long getStartTime() {
+	return starttime;
+}
+
+/**
+ * @return Endzeitpunkt des Ereignisses (in Millisekunden seit 1.1.1970)
+ */
+public long getEndTime() {
+	return endtime;
+}
+
+/**
+ * Fügt eine neue Aufgabe hinzu.
+ * 
+ * @param ncat
+ *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+ * @param nname
+ *            Bezeichnung der Aufgabe
+ * @param nstart
+ *            Startzeitpunkt der Aufgabe (in Millisekunden seit 1.1.1970).
+ * @param ndauer
+ *            Dauer der Aufgabe (in Millisekunden)
+ * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+ *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+ *         aufnehmen darf.
+ */
+public Task addTask(Category ncat, String nname, long nstart, long ndauer) {
+		long end = nstart + ndauer;
+		Task a = new Task(ncat, nname, nstart, end);
+		TimePlanner.listta.add(a);
+		ncat.addEvent(ncat, nname, nstart, end);
+		return a;
+		
+	
+}
+
+/**
+ * Fügt einer Kategorie eine neue Ganztages-Aufgabe hinzu.
+ * 
+ * @param tcat
+ *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+ * @param tname
+ *            Bezeichnung der Aufgabe
+ * @param tstart
+ *            ein Zeitpunkt in Millisekunden seit 1.1.1970; die Aufgabe
+ *            erstreckt sich dann über den ganzen Tag, der diese
+ *            Millisekunde enthält
+ * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+ *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+ *         aufnehmen darf.
+ */
+public Task addTask(Category tcat, String tname, long tstart) {
+	long begin = DateTime.beginOfDay(tstart);
+	long end = DateTime.endOfDay(tstart);
+	tcat.addEvent(tcat, tname, begin, end);
+	Task a = new Task(tcat, tname, begin, end);
+	TimePlanner.listta.add(a);
+	return a;
+	}
+
+/**
+ * Fügt einer Kategorie eine Serien-Aufgabe hinzu.
+ * 
+ * @param pcat
+ *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+ * @param pname
+ *            Bezeichnung des Aufgabe
+ * @param pstart
+ *            Startzeitpunkt der Aufgabe (in Millisekunden seit 1.1.1970)
+ * @param duration
+ *            Dauer der Aufgabe (in Millisekunden)
+ * @param delta
+ *            Abstand zwischen zwei Ereignissen zu dieser Aufgabe (in
+ *            Millisekunden). Eine Aufgabe, die sich jeden Tag wiederholt,
+ *            bekommt hier also den Wert 24*60*60*1000.
+ * @param end
+ *            Zeitpunkt, ab dem keine Wiederholungen mehr stattfinden (in
+ *            Millisekunden seit 1.1.1970)
+ * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+ *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+ *         aufnehmen darf.
+ */
+public Task addPeriodicTask(Category pcat, String pname, long pstart,
+	long duration, long delta, long end) {
+	Task a = new Task(pcat, pname, pstart, end);
+	TimePlanner.listta.add(a);
+	while(pstart+duration<=end){
+			long ende = pstart + duration;
+			pcat.addEvent(pcat, pname, pstart, ende);
+			pstart+=delta;
+			}
+			
+	return a;
+}
+
+/**
+ * Fügt einer Kategorie eine neue Ganztages-Aufgabe hinzu, die sich jedes
+ * Jahr wiederholt.
+ * 
+ * @param ycat
+ *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+ * @param yname
+ *            Bezeichnung der Aufgabe
+ * @param ystart
+ *            ein Zeitpunkt in Millisekunden seit 1.1.1970; die Aufgabe
+ *            erstreckt sich dann über den ganzen Tag, der diese
+ *            Millisekunde enthält (in jedem Jahr bis zum Endzeitpunkt)
+ * @param yend
+ *            Zeitpunkt, ab dem keine Wiederholungen mehr stattfinden (in
+ *            Millisekunden seit 1.1.1970)
+ * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+ *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+ *         aufnehmen darf.
+ */
+public Task addYearlyTask(Category ycat, String yname, long ystart, long yend) {
+		Task a = new Task(ycat, yname, ystart, yend);
+		TimePlanner.listta.add(a);
+		while(ystart<=DateTime.beginOfDay(yend)){
+			ycat.addEvent(ycat, yname, ystart, DateTime.endOfDay(ystart));
+			ystart=DateTime.nextYear(ystart);
+			
+		}
+		
+	return a;
+}
+
+/**
+ * Fügt einer Kategorie eine Wochentags-Aufgabe hinzu, die sich jeden Monat
+ * am ersten Montag (oder Dienstag, etc.) wiederholt.
+ * 
+ * @param wcat
+ *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+ * @param wname
+ *            Bezeichnung des Termins
+ * @param wstart
+ *            ein Zeitpunkt in Millisekunden seit 1.1.1970, der auf einen
+ *            der ersten sieben Tage des Monats fällt; die Aufgabe erstreckt
+ *            sich dann über den ganzen Tag, der diese Millisekunde enthält
+ *            (in jedem Jahr bis zum Endzeitpunkt). Aus diesem
+ *            Startzeitpunkt ergibt sich implizit auch der Wochentag.
+ * @param wend
+ *            Zeitpunkt, ab dem keine Wiederholungen mehr stattfinden (in
+ *            Millisekunden seit 1.1.1970)
+ * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+ *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+ *         aufnehmen darf oder das Datum nicht an den ersten sieben Tagen
+ *         eines Monats lag.
+ */
+public Task addFirstWeekdayTask(Category wcat, String wname, long wstart, long wend) {
+	Task a = new Task(wcat, wname, wstart, wend);
+	TimePlanner.listta.add(a);
+		while(wstart<wend){
+			wcat.addEvent(wcat, wname, wstart, DateTime.endOfDay(wstart));
+			wstart = DateTime.firstMonthDay(DateTime.nextMonth(wstart), 
+					DateTime.getWeekDay(wstart));
+			}
+	return a;
+}
+
+
+
+}

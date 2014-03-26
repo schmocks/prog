@@ -1,0 +1,171 @@
+package tplan.app;
+
+import java.awt.Color;
+import java.util.ArrayList;
+
+/**
+ * Klasse für eine Aufgaben-Kategorie, der weitere Unterkategorien zugeordnet
+ * werden können.
+ *
+ *@author Stephan Degener
+ *
+ */
+
+public class Category {
+
+	public String name;
+	public Color farbe;
+	public long endTime;
+	public long startTime;
+	ArrayList<Category> listsc= new ArrayList<Category>();
+	ArrayList<Event> listev= new ArrayList<Event>();	
+	
+	/**
+	 * toString Methode
+	 * 
+	 * @return liefert einer String aller Unterkategorien und deren Events als Baum dargestellt
+	 * 
+	 */
+	
+	
+	
+	public String toString() {
+		String tree = "";
+		Category[] c = getSubCategories();
+		if(c.length!=0){
+			for(int i=0;i<getSubCategories().length;i++){
+				tree += "+- " + (c[i].getName() + "\n" + c[i].getCatEvents());
+			}
+		}
+		else{
+			tree += getCatEvents();
+		}
+		
+		return name + "\n" + tree;
+	}
+	
+	
+	/**
+	 * Konstruktor Hauptkategorie
+	 * 
+	 * @param name Name der Kategorie
+	 * @param farbe Farbe der Kategorie
+	 * 
+	 */
+	
+	Category (String name, Color farbe){
+		this.name=name;this.farbe=farbe;
+	}
+	/**
+	 * Konstruktor Unterkategorie
+	 * 
+	 * @param name Name der Unterkategorie
+	 * 
+	 */
+	
+	Category (String name){
+		this.name=name;
+	}
+	/**
+	 * @return Name der Kategorie
+	 */
+	
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return Farbe der Kategorie für graphische Darstellung
+	 */
+	public Color getColor() {
+		return farbe;
+	}
+
+	/**
+	 * Fügt dieser Kategorie eine neue Unter-Kategorie hinzu.
+	 * 
+	 * @return neu erzeugte Kategorie. null, wenn die Kategorie schon Aufgaben
+	 *         enthält und daher keine Kategorien mehr aufnehmen darf.
+	 
+	 * @param namesc
+	 * 			TEST
+	 */
+	public Category addSubCategory(String namesc){
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		if(m.length!=0){return null;}
+		Category a = new Category(namesc);listsc.add(a);
+		return a;
+	}
+
+	/**
+	 * @return Array aller untergeordneten Kategorien (ggf. Array der Länge 0).
+	 */
+	public Category[] getSubCategories() {
+		Category[] sub = listsc.toArray(new Category[listsc.size()]);
+		return sub;
+	
+	}
+
+	/**
+	 * Der Kategorie ein Event hinzufügen
+	 * 
+	 * @param cat Name dieser Kategorie
+	 * @param ename Name des Events
+	 * @param estartTime Startzeit des Events
+	 * @param eendTime Endzeit des Events
+	 * 
+	 * @return Event
+	 */
+	
+	public Event addEvent(Category cat, String ename, long estartTime, long eendTime){
+		Event s = new Event(cat, ename, estartTime, eendTime);listev.add(s);
+		return s;
+		
+	}
+	/**
+	 * @return Beginn der Lebenszeit dieser Kategorie (in Millisekunden seit
+	 *         1.1.1970). Der Startzeitpunkt dieser Kategorie ergibt sich aus
+	 *         dem frühesten Startzeitpunktes aller Aufgaben in dieser
+	 *         Kategorie. Gibt es keine Ereignisse, liefert die Methode 0.
+	 */
+	public long getStartTime() {
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		long start=getEndTime();
+		for(int i=0;i<m.length;i++){
+			if(m[i].getStartTime()<start){start=m[i].getStartTime();}
+		}
+		return start;
+	}
+
+	/**
+	 * @return Ende der Lebenszeit dieser Kategorie (in Millisekunden seit
+	 *         1.1.1970). Der Endzeitpunkt dieser Kategorie ergibt sich aus dem
+	 *         spätesten Endzeitpunktes aller Aufgaben in dieser Kategorie. Gibt
+	 *         es keine Ereignisse, liefert die Methode 0.
+	 */
+	public long getEndTime() {
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		long end = 0;
+		for(int i=0;i<m.length;i++){
+			if(m[i].getEndTime()>end){end=m[i].getEndTime();}
+		}
+		return end;
+	}
+	/**
+	 * String aller Events dieser Kategorie
+	 * wird bei der toString Methode benötigt
+	 * 
+	 * @return String aller Events mit Start und Endzeit
+	 * 
+	 */
+
+	public String getCatEvents(){
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		String ev = "";
+		for(int i=0;i<m.length;i++){
+			ev += "   +- "+m[i].getName() + " " + DateTime.dateTime(m[i].getStartTime())
+			   + " " + DateTime.dateTime(m[i].getEndTime())+ "\n";}
+		return ev;
+		}
+}
+

@@ -1,0 +1,356 @@
+package tplan.app;
+
+import java.awt.Color;
+import java.io.IOException;
+import java.util.ArrayList;
+
+
+
+
+/**
+ * Klasse für einen Zeitplaner, der Aufgaben und die daraus entstehenden
+ * Ereignisse verwaltet.
+ *
+ *@author Stephan Degener
+ */
+
+public class TimePlanner {
+
+// Liste aller Hauptkategorien
+ArrayList<Category> listmc= new ArrayList<Category>();
+ArrayList<Event> listev = new ArrayList<Event>();
+static ArrayList<Task> listta = new ArrayList<Task>();
+
+/**
+ * toString Methode liefert den kompletten Inhalt des Timeplanners als String
+ * @return Baumdarstellung des Timeplanners als String
+ * 
+ */
+public String toString() {
+	Category[] m = getMainCategories();
+	String c = "";
+	for(int i = 0; i<m.length;i++){c+=m[i];}
+	if(m.length==0){return "empty";}
+	return c;
+	}
+	
+
+
+
+
+/**
+	 * Prüft einen Zeitraum auf vorliegende Aufgaben / Ereignisse.
+	 * 
+	 * @param timepoint
+	 *            Anfangszeitpunkt (in Millisekunden seit 1.1.1970)
+	 * @param duration
+	 *            Zeitdauer (in Millisekunden)
+	 * @return true, wenn im angegebenen Zeitraum kein Ereignis liegt.
+	 */
+	public boolean isFree(long timepoint, long duration) {
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		for(int i=0;i<m.length;i++){
+			int free=0;
+			if(timepoint<(m[i].getStartTime())&&(timepoint+duration)<=(m[i].getStartTime())||
+			  (timepoint>=(m[i].getEndTime()))){free=1;				}
+			if (free==0){return false;				}
+			}
+		return true;
+	}
+
+	/**
+	 * @return Array aller Hauptkategorien (also solche, die nicht in einer
+	 *         anderen Kategorie zusammengefasst sind). Liefert ggf. Array der
+	 *         Länge 0.
+	 */
+	public Category[] getMainCategories() {
+		Category[] m = 	listmc.toArray(new Category[listmc.size()]);
+		return m;
+	}
+
+	/**
+	 * Fügt eine neue Kategorie hinzu.
+	 * 
+	 * @param name
+	 *            Name der Kategorie
+	 * @param color
+	 *            Farbe für diese Kategorie (und alle Unterkategorien)
+	 * @return neue Kategorie, wenn der Name noch nicht existiert, null sonst
+	 */
+	
+	
+	
+	public Category addMainCategory(String name, Color color) {
+		//Überprüfen ob der Name bereits vergeben ist
+		Category[] b = 	listmc.toArray(new Category[listmc.size()]);
+		for(int i=0;i<b.length;i++){
+			if(b[i].getName().equals(name)){return null;}
+		}
+		//Neue Kategorie anlegen
+		Category a = new Category(name, color);listmc.add(a);
+		return a; 
+	}
+
+	/**
+	 * Liefert alle Ereignisse, die zum gegebenen Zeitpunkt aktiv sind (also der
+	 * vorgegebene Zeitpunkt liegt zwischen Anfangs- und Endzeitpunkt des
+	 * Ereignisses).
+	 * 
+	 * @param timepoint
+	 *            Zeitpunkt (in Millisekunden seit 1.1.1970)
+	 * @return Array mit einem Eintrag für jedes einzelne Ereignis zu diesem
+	 *         Zeitpunkt. Liefert ggf. ein Array der Länge 0.
+	 */
+	public Event[] getEvents(long timepoint) {
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		ArrayList<Event> listaev= new ArrayList<Event>();
+		for(int i=0;i<m.length;i++){
+			if(timepoint>=(m[i].getStartTime())&&(timepoint<=m[i].getEndTime())){
+				listaev.add(m[i]);
+			}
+		}
+		Event[] a = listaev.toArray(new Event[listaev.size()]);
+		return a;
+	}
+
+	/**
+	 * Liefert alle Ereignisse, die in einem gegebenem Zeitraum aktiv sind (also
+	 * das vorgegebene Zeitintervall mit dem Zeitintervall des Ereignisses einen
+	 * nicht-leeren Schnitt hat).
+	 * 
+	 * @param timepoint
+	 *            Zeitpunkt (in Millisekunden seit 1.1.1970)
+	 * @param duration
+	 *            Dauer (in Millisekunden)
+	 * @return Array mit einem Eintrag für jedes einzelne Ereignisinnerhalb des
+	 *         angegebenen Zeitraums. Liefert ggf. ein Array der Länge 0.
+	 */
+	public Event[] getEvents(long timepoint, long duration) {
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		ArrayList<Event> listaev= new ArrayList<Event>();
+		long end = timepoint + duration;
+		for(int i=0;i<m.length;i++){
+			if((timepoint<=m[i].getStartTime())&&(end>=m[i].getEndTime())||	
+			   (timepoint>=m[i].getStartTime())&&(timepoint<=m[i].getEndTime())||
+			   (end>=m[i].getStartTime())&&end<=m[i].getEndTime()){	
+				listaev.add(m[i]);									
+			}
+		}
+		Event[] a = listaev.toArray(new Event[listaev.size()]);
+		return a;
+		
+		
+	
+	}
+
+	/**
+	 * Fügt eine neue Aufgabe hinzu.
+	 * 
+	 * @param cat
+	 *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+	 * @param name
+	 *            Bezeichnung der Aufgabe
+	 * @param start
+	 *            Startzeitpunkt der Aufgabe (in Millisekunden seit 1.1.1970).
+	 * @param dauer
+	 *            Dauer der Aufgabe (in Millisekunden)
+	 * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+	 *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+	 *         aufnehmen darf.
+	 */
+	public boolean addTask(Category cat, String name, long start, long dauer) {
+			if(((cat.getSubCategories()).length)==0){
+			Task a = new Task(cat, name, start, dauer);
+			a.addTask(cat, name, start, dauer);
+			listev.add(new Event(cat, name, start, start+dauer));
+			return true;
+			}
+		return false;
+	}
+
+	/**
+	 * Entfernt eine Aufgabe mit der angegebenen Bezeichnung.
+	 * 
+	 * @param cat
+	 *            Kategorie, aus der die Aufgabe entfernt werden soll.
+	 * @param name
+	 *            Bezeichnung der Aufgabe
+	 * @return true, wenn Aufgabe gelöscht werden konnte (false wenn keine
+	 *         Aufgabe mit diesem Namen gefunden wurde)
+	 */
+	public boolean removeTask(Category cat, String name) {
+		Event[] m = listev.toArray(new Event[listev.size()]);
+		Task[] t = listta.toArray(new Task[listta.size()]);
+		ArrayList<Event> listrem= new ArrayList<Event>();
+		ArrayList<Task> listtar= new ArrayList<Task>();
+		for(int i=0;i<m.length;i++){
+			if(!cat.equals(m[i].getCategory())||!name.equals(m[i].getName())){
+				listrem.add(m[i]);
+			}
+		for(int j=0;j<t.length;j++){
+			if(!cat.equals(t[j].getCategory())||!name.equals(t[j].getName())){
+				listtar.add(t[j]);
+			}
+		}
+		}
+		if(listrem==listev){return false;}
+		listev=listrem;
+		listta=listtar;
+		
+		return true;
+		
+		
+	}
+
+	// ////////////////////////////////////////////////////////////
+	// /////// ERST AB AUFGABE 2 //////////////////////////////////
+	// ////////////////////////////////////////////////////////////
+
+	/**
+	 * Fügt einer Kategorie eine neue Ganztages-Aufgabe hinzu.
+	 * 
+	 * @param cat
+	 *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+	 * @param name
+	 *            Bezeichnung der Aufgabe
+	 * @param start
+	 *            ein Zeitpunkt in Millisekunden seit 1.1.1970; die Aufgabe
+	 *            erstreckt sich dann über den ganzen Tag, der diese
+	 *            Millisekunde enthält
+	 * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+	 *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+	 *         aufnehmen darf.
+	 */
+	public boolean addTask(Category cat, String name, long start) {
+		if(((cat.getSubCategories()).length)==0){
+			Task a = new Task(cat, name, start);
+			a.addTask(cat, name, start);
+			long begin = DateTime.beginOfDay(start);
+			long end = DateTime.endOfDay(start);
+			listev.add(new Event(cat, name, begin, end));
+			return true;
+			}
+		return false;
+	}
+
+
+	/**
+	 * Fügt einer Kategorie eine Serien-Aufgabe hinzu.
+	 * 
+	 * @param cat
+	 *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+	 * @param name
+	 *            Bezeichnung des Aufgabe
+	 * @param start
+	 *            Startzeitpunkt der Aufgabe (in Millisekunden seit 1.1.1970)
+	 * @param duration
+	 *            Dauer der Aufgabe (in Millisekunden)
+	 * @param delta
+	 *            Abstand zwischen zwei Ereignissen zu dieser Aufgabe (in
+	 *            Millisekunden). Eine Aufgabe, die sich jeden Tag wiederholt,
+	 *            bekommt hier also den Wert 24*60*60*1000.
+	 * @param end
+	 *            Zeitpunkt, ab dem keine Wiederholungen mehr stattfinden (in
+	 *            Millisekunden seit 1.1.1970)
+	 * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+	 *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+	 *         aufnehmen darf.
+	 */
+	public boolean addPeriodicTask(Category cat, String name, long start,
+			long duration, long delta, long end) {
+		if(((cat.getSubCategories()).length)==0){
+			Task a = new Task(cat, name, start, duration, delta, end);
+			a.addPeriodicTask(cat, name, start, duration, delta, end);
+			while(start+duration<=end){
+				long ende = start + duration;
+				listev.add(new Event(cat, name, start, ende));
+				start+=delta;
+				}
+			return true;
+			}
+		return false;
+	}
+
+	/**
+	 * Fügt einer Kategorie eine neue Ganztages-Aufgabe hinzu, die sich jedes
+	 * Jahr wiederholt.
+	 * 
+	 * @param cat
+	 *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+	 * @param name
+	 *            Bezeichnung der Aufgabe
+	 * @param start
+	 *            ein Zeitpunkt in Millisekunden seit 1.1.1970; die Aufgabe
+	 *            erstreckt sich dann über den ganzen Tag, der diese
+	 *            Millisekunde enthält (in jedem Jahr bis zum Endzeitpunkt)
+	 * @param end
+	 *            Zeitpunkt, ab dem keine Wiederholungen mehr stattfinden (in
+	 *            Millisekunden seit 1.1.1970)
+	 * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+	 *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+	 *         aufnehmen darf.
+	 */
+	public boolean addYearlyTask(Category cat, String name, long start, long end) {
+		if(((cat.getSubCategories()).length)==0){
+			Task a = new Task(cat, name, start, end);
+			a.addYearlyTask(cat, name, start, end);
+			while(start<=DateTime.beginOfDay(end)){
+				listev.add(new Event(cat, name, DateTime.beginOfDay(start)
+						, DateTime.endOfDay(start)));
+				start=DateTime.nextYear(start);
+			}
+			return true;
+			}
+		return false;
+	}
+
+	/**
+	 * Fügt einer Kategorie eine Wochentags-Aufgabe hinzu, die sich jeden Monat
+	 * am ersten Montag (oder Dienstag, etc.) wiederholt.
+	 * 
+	 * @param cat
+	 *            Kategorie, der die Aufgabe hinzugefügt werden soll.
+	 * @param name
+	 *            Bezeichnung des Termins
+	 * @param start
+	 *            ein Zeitpunkt in Millisekunden seit 1.1.1970, der auf einen
+	 *            der ersten sieben Tage des Monats fällt; die Aufgabe erstreckt
+	 *            sich dann über den ganzen Tag, der diese Millisekunde enthält
+	 *            (in jedem Jahr bis zum Endzeitpunkt). Aus diesem
+	 *            Startzeitpunkt ergibt sich implizit auch der Wochentag.
+	 * @param end
+	 *            Zeitpunkt, ab dem keine Wiederholungen mehr stattfinden (in
+	 *            Millisekunden seit 1.1.1970)
+	 * @return true, wenn Anlegen der Aufgabe erfolgreich war; false, wenn die
+	 *         Kategorie schon Unterkategorien enthält und daher keine Aufgaben
+	 *         aufnehmen darf oder das Datum nicht an den ersten sieben Tagen
+	 *         eines Monats lag.
+	 */
+	public boolean addFirstWeekdayTask(Category cat, String name, long start, long end) {
+		if(((cat.getSubCategories()).length)==0){
+			Task a = new Task(cat, name, start, end);
+			a.addFirstWeekdayTask(cat, name, start, end);
+			while(start<end){
+				listev.add(new Event(cat, name, start, DateTime.endOfDay(start)));
+				start = DateTime.firstMonthDay(DateTime.nextMonth(start), 
+						DateTime.getWeekDay(start));
+			}
+			return true;
+			}
+		
+		return false;
+	}
+
+	// ////////////////////////////////////////////////////////////
+	// /////// ERST AB AUFGABE 3 //////////////////////////////////
+	// ////////////////////////////////////////////////////////////
+
+	/** Laden des Zeitplans. */
+	public void load(String filename) throws IOException {
+	}
+
+	/** Speichern des Zeitplans. */
+	public void save(String filename) throws IOException {
+	}
+
+}

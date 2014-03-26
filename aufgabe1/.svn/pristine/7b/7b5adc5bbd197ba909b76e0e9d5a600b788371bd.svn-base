@@ -1,0 +1,75 @@
+package tplan.app;
+
+
+
+/**
+ * Klasse für einen einzelnen Termin mit fester Start- und Endzeit.
+ *
+ * @author Stephan Degener
+ * 
+ */
+
+public class Event {
+
+	public String name;
+	public long startTime;
+	public long endTime;
+	public Category cat;
+	
+	
+	/**
+	 * toString Methode
+	 * 
+	 * @return String mit Eventname und übergeordneter Kategorie
+	 * 
+	 */ 
+	 public String toString() {
+	 
+		return "Eventname: " +this.name +" "+ this.cat;
+	}
+	
+	/**
+	 * Konstruktor für Event
+	 * 
+	 * @param cat Kategorie
+	 * @param name Name
+	 * @param startTime Startzeitpunkt in ms seit 1.1.1970
+	 * @param endTime	Endzeitpunkt in ms seit 1.1.1970
+	 */
+	
+	Event(Category cat, String name, long startTime, long endTime){
+		this.cat=cat;this.name=name;this.startTime=startTime;this.endTime=endTime;
+	}
+	
+	/**
+	 * @return Name des Ereignisses
+	 */
+	
+	
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return Kategorie, zu der dieses Ereignis (unmittelbar) gehört
+	 */
+	public Category getCategory() {
+		
+	return cat;
+	}
+
+	/**
+	 * @return Startzeitpunkt des Ereignisses (in Millisekunden seit 1.1.1970)
+	 */
+	public long getStartTime() {
+		return startTime;
+	}
+
+	/**
+	 * @return Endzeitpunkt des Ereignisses (in Millisekunden seit 1.1.1970)
+	 */
+	public long getEndTime() {
+		return endTime;
+	}
+
+}
